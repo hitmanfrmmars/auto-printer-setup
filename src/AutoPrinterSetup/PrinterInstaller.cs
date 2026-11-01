@@ -56,12 +56,11 @@ public static class PrinterInstaller
         }
         """;
 
+    // Win32_Printer.PrintTestPage returns 5 (access denied) for standard users; printui works without elevation.
     public static Task<PsResult> PrintTestPageAsync(string printerName) => PowerShellRunner.RunAsync($$"""
         $name = {{PowerShellRunner.Quote(printerName)}}
-        $printer = Get-CimInstance -ClassName Win32_Printer | Where-Object { $_.Name -eq $name }
-        if (-not $printer) { throw "There is no printer called '$name'." }
-        $result = Invoke-CimMethod -InputObject $printer -MethodName PrintTestPage
-        if ($result.ReturnValue -ne 0) { throw "Windows could not print a test page (error $($result.ReturnValue))." }
+        if (-not (Get-Printer -Name $name -ErrorAction SilentlyContinue)) { throw "There is no printer called '$name'." }
+        Start-Process -FilePath rundll32.exe -ArgumentList ('printui.dll,PrintUIEntry /k /n "{0}"' -f $name) -Wait
         """);
 
     public static string SanitizeName(string name) =>
