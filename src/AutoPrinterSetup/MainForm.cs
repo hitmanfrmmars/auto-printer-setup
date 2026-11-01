@@ -307,7 +307,7 @@ public sealed class MainForm : Form
             // Re-adding under a new name leaves the old copy behind; remove it so there is only one.
             if (existingForThis != null && !existingForThis.Name.Equals(name, StringComparison.OrdinalIgnoreCase))
             {
-                await PowerShellRunner.RunAsync($"Remove-Printer -Name {PowerShellRunner.Quote(existingForThis.Name)}");
+                await PrinterInstaller.RemoveAsync(existingForThis.Name);
                 PrinterStore.Remove(existingForThis.Name);
             }
 
